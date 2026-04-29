@@ -1,0 +1,50 @@
+---
+# Instalación opcional por tags. Ejemplos:
+#   ansible-playbook setup.yml -K --tags "aws-cli,frida"
+#   ansible-playbook setup.yml -K --tags "nvm-node,cursor" --skip-tags "chrome"
+# Listar tags: ansible-playbook setup.yml --list-tags
+#
+# -K (--ask-become-pass): pedir contraseña de sudo para tareas con become (apt, snap, .deb, AWS CLI, etc.).
+# Requisitos: Ubuntu/Debian con sudo, Python 3 en el controlado (localhost).
+
+- name: Herramientas de desarrollo (opcional por tags)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: AWS CLI
+      ansible.builtin.import_tasks: tasks/aws_cli.yml
+      tags: [aws-cli, aws]
+
+    - name: Android Studio
+      ansible.builtin.import_tasks: tasks/android_studio.yml
+      tags: [android-studio, android]
+
+    - name: ADB (Android Debug Bridge)
+      ansible.builtin.import_tasks: tasks/adb.yml
+      tags: [adb, android-debug-bridge, android]
+
+    - name: HTTPToolkit
+      ansible.builtin.import_tasks: tasks/httptoolkit.yml
+      tags: [httptoolkit, http-toolkit]
+
+    - name: NVM y Node
+      ansible.builtin.import_tasks: tasks/nvm_node.yml
+      tags: [nvm-node, nvm, node]
+
+    - name: Frida
+      ansible.builtin.import_tasks: tasks/frida.yml
+      tags: [frida, frida-tools]
+
+    - name: Google Chrome
+      ansible.builtin.import_tasks: tasks/chrome.yml
+      tags: [chrome, google-chrome]
+
+    - name: Cursor
+      ansible.builtin.import_tasks: tasks/cursor.yml
+      tags: [cursor]
+
+    - name: Postman
+      ansible.builtin.import_tasks: tasks/postman.yml
+      tags: [postman]

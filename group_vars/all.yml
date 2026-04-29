@@ -1,0 +1,15 @@
+---
+# Versiones y URLs por defecto (sobrescribibles con -e)
+frida_version: "16.7.0"
+
+# .deb oficial (amd64). Actualizar la versión cuando quieras o pásala con -e.
+httptoolkit_deb_url: "https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v1.25.2/HttpToolkit-1.25.2-x64.deb"
+
+# Rama/tag de Node a instalar tras cargar NVM (ej: "22", "lts/*", "20.10.0")
+nvm_node_version: "lts/*"
+
+# Descarga de Cursor (.deb amd64). Actualizar si cambia el canal de distribución.
+cursor_deb_url: "https://downloader.cursor.sh/linux/deb/x64/stable"
+
+# Google Chrome estable (.deb) — la URL oficial usa redirección al .deb actual.
+chrome_deb_url: "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"

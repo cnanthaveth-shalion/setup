@@ -1,0 +1,34 @@
+---
+# Android Debug Bridge: paquete `adb` (Ubuntu); si no existe en el repo, `android-tools-adb` (Debian / versiones antiguas).
+- name: "[adb] Bloque de instalación"
+  block:
+    - name: "[adb] Instalar paquete adb"
+      ansible.builtin.apt:
+        name: adb
+        state: present
+        update_cache: true
+      become: true
+      register: adb_pkg_main
+      ignore_errors: true
+
+    - name: "[adb] Instalar android-tools-adb (fallback)"
+      ansible.builtin.apt:
+        name: android-tools-adb
+        state: present
+      become: true
+      when: adb_pkg_main is failed
+
+    - name: "[adb] Comprobar instalación"
+      ansible.builtin.command: adb version
+      register: adb_ver
+      changed_when: false
+
+    - name: "[adb] Versión"
+      ansible.builtin.debug:
+        msg: "{{ adb_ver.stdout_lines | default([]) }}"
+
+  rescue:
+    - name: "[adb] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "ADB: error — {{ ansible_failed_result.msg | default('revisa APT y nombre de paquete') }}"
+  ignore_errors: true

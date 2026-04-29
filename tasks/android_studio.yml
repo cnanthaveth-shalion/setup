@@ -1,0 +1,20 @@
+---
+# Preferimos snap (classic). Requiere snapd.
+- name: "[android-studio] Bloque de instalación"
+  block:
+    - name: "[android-studio] Comprobar si está instalado (snap)"
+      ansible.builtin.command: snap list android-studio
+      register: as_snap
+      changed_when: false
+      failed_when: false
+
+    - name: "[android-studio] Instalar vía snap"
+      ansible.builtin.command: snap install android-studio --classic
+      become: true
+      when: as_snap.rc != 0
+
+  rescue:
+    - name: "[android-studio] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Android Studio: error — {{ ansible_failed_result.msg | default('¿snapd instalado y activo?') }}"
+  ignore_errors: true

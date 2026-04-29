@@ -1,0 +1,33 @@
+---
+# Paquete .deb desde GitHub Releases. Por defecto amd64; en ARM defines httptoolkit_deb_url en group_vars o con -e.
+- name: "[httptoolkit] Bloque de instalación"
+  block:
+    - name: "[httptoolkit] Dependencias para instalar el .deb"
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "[httptoolkit] Descargar paquete .deb"
+      ansible.builtin.get_url:
+        url: "{{ httptoolkit_deb_url }}"
+        dest: /tmp/httptoolkit.deb
+        mode: "0644"
+
+    - name: "[httptoolkit] Instalar con APT (resuelve dependencias)"
+      ansible.builtin.apt:
+        deb: /tmp/httptoolkit.deb
+      become: true
+
+    - name: "[httptoolkit] Quitar .deb de /tmp"
+      ansible.builtin.file:
+        path: /tmp/httptoolkit.deb
+        state: absent
+
+  rescue:
+    - name: "[httptoolkit] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "HTTPToolkit: error — {{ ansible_failed_result.msg | default('revisa URL y arquitectura') }}"
+  ignore_errors: true

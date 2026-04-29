@@ -1,0 +1,45 @@
+---
+# NVM en el usuario actual (sin elevar a root para el shell de nvm).
+- name: "[nvm-node] Bloque de instalación"
+  block:
+    - name: "[nvm-node] Comprobar si nvm está instalado"
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+      register: nvm_sh
+
+    - name: "[nvm-node] Descargar script de instalación de NVM"
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh
+        dest: /tmp/nvm-install.sh
+        mode: "0755"
+      when: not nvm_sh.stat.exists
+
+    - name: "[nvm-node] Ejecutar instalador NVM"
+      ansible.builtin.shell: /tmp/nvm-install.sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+      environment:
+        HOME: "{{ ansible_env.HOME }}"
+      when: not nvm_sh.stat.exists
+
+    - name: "[nvm-node] Instalar Node y fijar por defecto"
+      ansible.builtin.shell: |
+        set -e
+        export NVM_DIR="$HOME/.nvm"
+        # shellcheck disable=SC1090
+        . "$NVM_DIR/nvm.sh"
+        nvm install "{{ nvm_node_version }}"
+        nvm alias default "$(nvm version)"
+      args:
+        executable: /bin/bash
+
+    - name: "[nvm-node] Quitar script de instalación en /tmp"
+      ansible.builtin.file:
+        path: /tmp/nvm-install.sh
+        state: absent
+
+  rescue:
+    - name: "[nvm-node] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "NVM/Node: error — {{ ansible_failed_result.msg | default('revisa permisos del home') }}"
+  ignore_errors: true

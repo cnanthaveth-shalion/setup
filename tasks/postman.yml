@@ -1,0 +1,20 @@
+---
+# Postman vía snap (amplio soporte). Alternativa: flatpak.
+- name: "[postman] Bloque de instalación"
+  block:
+    - name: "[postman] Comprobar si está instalado"
+      ansible.builtin.command: snap list postman
+      register: pm_snap
+      changed_when: false
+      failed_when: false
+
+    - name: "[postman] Instalar vía snap"
+      ansible.builtin.command: snap install postman
+      become: true
+      when: pm_snap.rc != 0
+
+  rescue:
+    - name: "[postman] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Postman: error — {{ ansible_failed_result.msg | default('¿snapd disponible?') }}"
+  ignore_errors: true

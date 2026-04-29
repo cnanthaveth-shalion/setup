@@ -1,0 +1,42 @@
+---
+# Google Chrome estable (.deb amd64 desde Google).
+- name: "[chrome] Bloque de instalación"
+  block:
+    - name: "[chrome] Omitir en arquitecturas distintas de amd64"
+      ansible.builtin.debug:
+        msg: "Chrome: el .deb oficial de Google es para amd64. Usa otro método o instala Chromium desde APT."
+      when: ansible_architecture != "x86_64"
+
+    - name: "[chrome] Dependencias"
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+        state: present
+      become: true
+      when: ansible_architecture == "x86_64"
+
+    - name: "[chrome] Descargar .deb"
+      ansible.builtin.get_url:
+        url: "{{ chrome_deb_url }}"
+        dest: /tmp/google-chrome-stable.deb
+        mode: "0644"
+      when: ansible_architecture == "x86_64"
+
+    - name: "[chrome] Instalar paquete"
+      ansible.builtin.apt:
+        deb: /tmp/google-chrome-stable.deb
+      become: true
+      when: ansible_architecture == "x86_64"
+
+    - name: "[chrome] Quitar .deb de /tmp"
+      ansible.builtin.file:
+        path: /tmp/google-chrome-stable.deb
+        state: absent
+      when: ansible_architecture == "x86_64"
+
+  rescue:
+    - name: "[chrome] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Chrome: error — {{ ansible_failed_result.msg | default('revisa red y dependencias') }}"
+  ignore_errors: true

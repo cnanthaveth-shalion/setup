@@ -1,0 +1,42 @@
+---
+# pip desde APT (sudo) + paquetes en el usuario (--user). Ejecutá el playbook con -K si sudo pide contraseña.
+- name: "[frida] Bloque de instalación"
+  block:
+    - name: "[frida] Asegurar pip"
+      ansible.builtin.apt:
+        name:
+          - python3-pip
+          - python3-setuptools
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "[frida] Instalar frida y frida-tools (versión fijada de frida)"
+      ansible.builtin.pip:
+        executable: pip3
+        name:
+          - "frida=={{ frida_version }}"
+          - frida-tools
+        extra_args: --user
+        state: present
+      environment:
+        PIP_BREAK_SYSTEM_PACKAGES: "1"
+
+    - name: "[frida] Incluir ~/.local/bin en PATH (pip --user)"
+      ansible.builtin.blockinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        marker: "# {mark} ANSIBLE: pip user base (~/.local/bin)"
+        block: |
+          export PATH="$HOME/.local/bin:$PATH"
+        create: true
+        mode: "0644"
+
+    - name: "[frida] Recordatorio"
+      ansible.builtin.debug:
+        msg: "Frida quedó en ~/.local/bin. Abrí un terminal nuevo o ejecutá: source ~/.bashrc"
+
+  rescue:
+    - name: "[frida] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Frida: error — {{ ansible_failed_result.msg | default('revisa pip y PEP 668') }}"
+  ignore_errors: true

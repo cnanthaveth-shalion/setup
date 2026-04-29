@@ -1,0 +1,68 @@
+---
+- name: "[aws-cli] Bloque de instalación"
+  block:
+    - name: "[aws-cli] Comprobar si aws ya está en PATH"
+      ansible.builtin.command: which aws
+      register: aws_which
+      changed_when: false
+      failed_when: false
+
+    - name: "[aws-cli] Dependencias para extraer el zip"
+      ansible.builtin.apt:
+        name:
+          - unzip
+          - curl
+        state: present
+        update_cache: true
+      become: true
+      when: aws_which.rc != 0
+
+    - name: "[aws-cli] URL del zip según arquitectura"
+      ansible.builtin.set_fact:
+        aws_cli_zip_url: >-
+          {{
+            'https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip'
+            if ansible_architecture == 'aarch64'
+            else 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip'
+          }}
+      when: aws_which.rc != 0
+
+    - name: "[aws-cli] Descargar instalador"
+      ansible.builtin.get_url:
+        url: "{{ aws_cli_zip_url }}"
+        dest: /tmp/awscliv2.zip
+        mode: "0644"
+      when: aws_which.rc != 0
+
+    - name: "[aws-cli] Descomprimir"
+      ansible.builtin.unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: true
+      when: aws_which.rc != 0
+
+    - name: "[aws-cli] Ejecutar instalador"
+      ansible.builtin.command: /tmp/aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+      become: true
+      when: aws_which.rc != 0
+      register: aws_cli_install
+
+    - name: "[aws-cli] Quitar zip y carpeta del instalador en /tmp"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/awscliv2.zip
+        - /tmp/aws
+      when:
+        - aws_which.rc != 0
+        - aws_cli_install is defined
+        - not (aws_cli_install.failed | default(false))
+
+  rescue:
+    - name: "[aws-cli] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "AWS CLI: error — {{ ansible_failed_result.msg | default(ansible_failed_task.name | default('desconocido')) }}"
+  ignore_errors: true

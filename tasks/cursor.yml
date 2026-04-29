@@ -1,0 +1,33 @@
+---
+# Cursor: .deb desde el CDN configurado en group_vars (amd64 típico).
+- name: "[cursor] Bloque de instalación"
+  block:
+    - name: "[cursor] Dependencias"
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+        state: present
+      become: true
+
+    - name: "[cursor] Descargar .deb"
+      ansible.builtin.get_url:
+        url: "{{ cursor_deb_url }}"
+        dest: /tmp/cursor.deb
+        mode: "0644"
+
+    - name: "[cursor] Instalar paquete"
+      ansible.builtin.apt:
+        deb: /tmp/cursor.deb
+      become: true
+
+    - name: "[cursor] Quitar .deb de /tmp"
+      ansible.builtin.file:
+        path: /tmp/cursor.deb
+        state: absent
+
+  rescue:
+    - name: "[cursor] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Cursor: error — {{ ansible_failed_result.msg | default('revisa cursor_deb_url y arquitectura') }}"
+  ignore_errors: true
