@@ -1,0 +1,48 @@
+---
+# Git desde APT. Proton VPN: repo oficial (.deb) + app GNOME en amd64 (documentación Proton).
+- name: "[git-proton] Bloque de instalación"
+  block:
+    - name: "[git] Instalar git"
+      ansible.builtin.apt:
+        name: git
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "[proton] App GNOME solo en amd64 (paquetes oficiales)"
+      ansible.builtin.debug:
+        msg: "Proton VPN (app gráfica): orientada a amd64 en la documentación oficial. En otra arquitectura probá el CLI: https://protonvpn.com/support/linux-cli"
+      when: ansible_architecture != "x86_64"
+
+    - name: "[proton] Descargar paquete del repositorio Proton"
+      ansible.builtin.get_url:
+        url: "{{ protonvpn_release_deb_url }}"
+        dest: /tmp/protonvpn-stable-release.deb
+        mode: "0644"
+      when: ansible_architecture == "x86_64"
+
+    - name: "[proton] Instalar repositorio Proton (claves y sources)"
+      ansible.builtin.apt:
+        deb: /tmp/protonvpn-stable-release.deb
+      become: true
+      when: ansible_architecture == "x86_64"
+
+    - name: "[proton] Quitar .deb del repositorio de /tmp"
+      ansible.builtin.file:
+        path: /tmp/protonvpn-stable-release.deb
+        state: absent
+      when: ansible_architecture == "x86_64"
+
+    - name: "[proton] Instalar Proton VPN (GNOME)"
+      ansible.builtin.apt:
+        name: proton-vpn-gnome-desktop
+        state: present
+        update_cache: true
+      become: true
+      when: ansible_architecture == "x86_64"
+
+  rescue:
+    - name: "[git-proton] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Git / Proton VPN: error — {{ ansible_failed_result.msg | default('revisa red y APT') }}"
+  ignore_errors: true

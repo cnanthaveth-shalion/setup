@@ -13,3 +13,6 @@ cursor_deb_url: "https://downloader.cursor.sh/linux/deb/x64/stable"
 
 # Google Chrome estable (.deb) — la URL oficial usa redirección al .deb actual.
 chrome_deb_url: "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+
+# Paquete `protonvpn-stable-release` (añade repo y claves APT). Actualizar versión si Proton publica otra.
+protonvpn_release_deb_url: "https://repo.protonvpn.com/debian/dists/stable/main/binary-all/protonvpn-stable-release_1.0.8_all.deb"

@@ -1,6 +1,6 @@
 ---
 # Instalación opcional por tags. Ejemplos:
-#   ansible-playbook setup.yml -K --tags "aws-cli,frida"
+#   ansible-playbook setup.yml -K --tags "aws-cli,frida,git-proton"
 #   ansible-playbook setup.yml -K --tags "nvm-node,cursor" --skip-tags "chrome"
 # Listar tags: ansible-playbook setup.yml --list-tags
 #
@@ -36,6 +36,10 @@
     - name: Frida
       ansible.builtin.import_tasks: tasks/frida.yml
       tags: [frida, frida-tools]
+
+    - name: Git y Proton VPN
+      ansible.builtin.import_tasks: tasks/git_proton_vpn.yml
+      tags: [git-proton, git, proton-vpn, proton, vpn]
 
     - name: Google Chrome
       ansible.builtin.import_tasks: tasks/chrome.yml
