@@ -1,0 +1,16 @@
+---
+# Git desde APT (Ubuntu/Debian).
+- name: "[git] Bloque de instalación"
+  block:
+    - name: "[git] Instalar git"
+      ansible.builtin.apt:
+        name: git
+        state: present
+        update_cache: true
+      become: true
+
+  rescue:
+    - name: "[git] Falló la instalación"
+      ansible.builtin.debug:
+        msg: "Git: error — {{ ansible_failed_result.msg | default('revisa APT') }}"
+  ignore_errors: true
